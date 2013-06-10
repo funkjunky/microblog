@@ -1,18 +1,6 @@
 TODO:
 
-- installation
-	-npm install express
-	-npm install moustache
-	-npm install consolidator
-	-npm install mongodb
-	-ensure hello world
 - create routes
-	-ensure they print hello world appropriately
-	-add the form view for adding a blog entry
-		-basic
-		-add in moustache hooks for editing
-		-add the backend
-		-ensure the records are in mongo
 	-add the front end summary view, and full view for an article
 	-add the list article view
 - use bootstrap to make the website look good
