@@ -3,6 +3,7 @@ var cons = require('consolidate');
 var app = express();
 var mongo = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID;
+var fs = require('fs');
 
 //Middle-Ware
 app.use(express.logger());
@@ -196,7 +197,8 @@ function send_templated_response(viewfile, title, params, res)
 
 function check_credentials(user, pass)
 {
-	return user == "jaman4dbz" && pass == "password";
+	var creds = JSON.parse(fs.readFileSync("credentials", 'utf8'));
+	return (user == creds.user && pass == creds.pass);
 }
 
 function verify_loggedin(req, res)
