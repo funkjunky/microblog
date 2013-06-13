@@ -1,0 +1,20 @@
+<html>
+ <head>
+  <title>Article - {{operation}}</title>
+ </head>
+ <body>
+  <fieldset>
+   <legend>Article - {{operation}}</legend>
+	<form action="/data/replace" method="post">
+	 <input type="hidden" name="_id" value="{{_id}}" />
+	 <label for="title">Title</label>
+	 <input type="text" name="title" value="{{title}}" /><br />
+	 <label for="body">Body</label><br />
+	 <textarea name="body">{{body}}</textarea><br />
+	 <label for="tags">Tags</label>
+	 <input type="text" name="tags" value="{{tags}}" /><br />
+	 <input type="submit" value="{{operation}}" />
+   </form>
+  </fieldset>
+ </body>
+</html>

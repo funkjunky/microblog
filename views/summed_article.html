@@ -1,0 +1,10 @@
+<fieldset>
+	<legend><h1><a href='/article/{{title}}'>{{title}}</a> - {{created}}({{modified}})</h1></legend>
+ <h2>
+ {{#tags}}
+ <a href="/tag/{{.}}">{{.}}</a> 
+ {{/tags}}
+ </h2>
+ <pre>{{body}}</pre>
+ {{#loggedin}}<a href="/admin/edit/{{title}}">Edit</a>{{/loggedin}}
+</fieldset>

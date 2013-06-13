@@ -6,7 +6,12 @@ var ObjectID = require('mongodb').ObjectID;
 
 //Middle-Ware
 app.use(express.logger());
+app.use("/js", express.static(__dirname + '/js'));
+app.use("/css", express.static(__dirname + '/css'));
+app.use("/views", express.static(__dirname + '/views'));
 app.use(express.bodyParser());
+app.use(express.cookieParser());
+app.use(express.session({secret: '234523543g4gefderg'}));
 
 //Laziness
 //TODO: put this somewhere else...
@@ -26,18 +31,48 @@ app.get('/', function(req, res) {
 });
 
 /**
- * Front end routes(get): all, date/<year>/<month>, tag/<tag>, search/<term>
+ * Front end routes(get): article/:title, all, date/<year>/<month>, tag/<tag>, search/<term>
  */
-app.get('/all', function(req, res) {
-	dbh.collection('articles').find().toArray(function(err, articles) {
-		console.log(articles);
-		var params = {filter: "All", articles: articles};
-		console.log(params);
-		cons.mustache('views/filtered_articles.html', params, function(err, html) {
-			if(err) throw err;
-			res.send(html);
-		});	
+app.get('/article/:title', function(req, res) {
+	dbh.collection('articles').findOne({title: req.params.title}, {}, function(err, article) {
+		send_templated_response('full_article', article.title, article, res);
 	});
+});
+
+app.get('/all', function(req, res) {
+	send_filtered_response({}, req, res);
+});
+
+app.get('/tag/:tag', function(req, res) {
+	console.log("tag: " + req.params.tag);
+	send_filtered_response({tags: req.params.tag}, req, res);
+});
+
+app.get('/date/:year/:month', function(req, res) {
+	if(!req.params.month)
+		filter = {created: {
+			$gt: new Date("01/01/"+req.params.year),
+			$lt: new Date("01/01/"+(req.params.year+1))
+		}};
+	else
+		filter = {created: {
+			$gt: new Date("01/"+req.params.month+"/"+req.params.year),
+			$lt: new Date("01/"+(req.params.month+1)+"/"+req.params.year)
+		}};
+
+	send_filtered_response(filter, req, res);
+});
+
+app.get('/search/:term', function(req, res) {
+	filter = { $or: [
+		{ title: new RegExp(".*"+req.params.term+".*", "i") },
+		{ body: new RegExp(".*"+req.params.term+".*", "i") },
+		{ tags: new RegExp(".*"+req.params.term+".*", "i") },
+	]};
+
+	console.log("starting search");
+	send_filtered_response(filter, req, res);
+	console.log("done search");
 });
 /***
  ***/
@@ -46,31 +81,17 @@ app.get('/all', function(req, res) {
  * front end admin routes(get): admin/create, admin/edit
  */
 app.get('/admin/create', function(req, res) {
-	cons.mustache('views/edit_article.html', {operation: 'create'}, function(err, html) {
-		if(err) throw err;
-		res.send(html);
-	});
+	verify_loggedin(req, res);
+	send_templated_response('edit_article', "Create New Article", {operation: 'create'}, res);
 });
 
 app.get('/admin/edit/:title', function(req, res) {
-	console.log(req.params.title);
+	verify_loggedin(req, res);
 	dbh.collection('articles').findOne({title: req.params.title}, {},
 		function(err, article) {
-			console.log(article);
-			cons.mustache('views/edit_article.html',
-				{
-					operation: 'edit',
-					_id: article._id,
-					created: article.created,
-					title: article.title,
-					body: article.body,
-					tags: article.tags.join(",")
-				},
-				function(err, html) {
-					if(err) throw err;
-					res.send(html);
-				}
-			);
+			article.operation = 'edit';
+			article.tags = article.tags.join(",");
+			send_templated_response('edit_article', "Edit: " + req.params.title, article, res);
 		}
 	);
 });
@@ -78,51 +99,118 @@ app.get('/admin/edit/:title', function(req, res) {
  ***/
 
 /**
- * Back end data routes(post): data/create, data/edit, data/delete
+ * Back end data routes(post): data/replace, data/delete, data/comment
  */
-app.post('/data/create', function(req, res) {
-	console.log("data request: /data/create");
-	console.log(req.body);
-
+app.post('/data/replace', function(req, res) {
 	var collection = dbh.collection("articles");
-	var doc = {
-		title: req.body.title,
-		body: req.body.body,
-		created: Math.floor(Date.now() / 1000),
-		modified: Math.floor(Date.now() / 1000),
-		tags: req.body.tags.split(",")
-	};
-	collection.insert(doc, {w: 0});
+	req.body.modified = new Date();
+	req.body.tags = req.body.tags.split(",");
+	var _id = new ObjectID();
+	if(req.body._id && req.body._id != '')
+		_id = new ObjectID(req.body._id);
+	else //if it's new, add the created field.
+		req.body.created = new Date();
+	delete req.body._id;
 
-	res.redirect(302, "/admin/create"); 
+	collection.update({_id: _id}, {$set: req.body}, {w: 0, upsert: true});
+
+	res.redirect(302, "/article/"+req.body.title); 
 });
 
-app.post('/data/edit', function(req, res) {
-	console.log("data request: /data/edit");
+app.post('/data/delete', function(req, res) {
+	console.log("data request: /data/delete");
 	console.log(req.body);
 
 	var collection = dbh.collection("articles");
-	var doc = {
-		title: req.body.title,
-		body: req.body.body,
-		modified: Math.floor(Date.now() / 1000),
-		created: req.body.created,
-		tags: req.body.tags.split(",")
-	};
-	console.log(req.body._id);
-	collection.update({_id: new ObjectID(req.body._id)}, doc, {}, function(err, res) {
-		console.log(err);
-		console.log(res);
-	});
+	collection.remove({_id: new ObjectID(req.body._id)}, {w:0});
 
-	res.send("done.");
-	//res.redirect(302, "/admin/edit/"+req.body.title); 
+	res.redirect(302, "/");
+});
+
+app.post('/data/comment', function(req, res) {
+	console.log("data request: /data/comment");
+	console.log(req.body);
+
+	var collection = dbh.collection("articles");
+	collection.update(
+		{_id: new ObjectID(req.body._id)},
+		{$push: {comments: {author: req.body.author, body: req.body.body}}},
+		{w:0}
+	);
+	res.redirect(302, req.body.redirect);
 });
 /***
  ***/
 
-app.get
+/**
+ * Security Routes
+ */
+app.get('/admin/login', function(req, res) {
+	send_templated_response("login", "Login to use the admin pages", {}, res);
+});
+
+app.post('/security/login', function(req, res) {
+	if(check_credentials(req.body.name, req.body.pass))
+	{
+		req.session.loggedin = true;
+		res.redirect(302, '/');
+	} else {
+		res.redirect(302, '/admin/login');
+	}
+});
+/***
+ ***/
 
 var port = 3000;
 app.listen(port);
 console.log("Listening on port " + port);
+
+//Convinience function... I don't know if this is the way it should be done.
+function send_filtered_response(filter, req, res)
+{
+	dbh.collection('articles').find(filter).toArray(function(err, articles) {
+		console.log(articles);
+		//get all the tags
+		var tags = [];
+		for(var i=0; i != articles.length; ++i)
+			tags.push.apply(tags, articles[i].tags); //this won't work if an article ever doesn't have a tag.
+		//
+		var params = {articles: articles, tags: unique_sort(tags), partials: { summed_article: 'summed_article' }};
+		if(req.session.loggedin) params.loggedin = true;
+		console.log(params);
+		send_templated_response('filtered_articles', 'filter = '+JSON.stringify(filter), params, res);
+	});
+}
+
+function send_templated_response(viewfile, title, params, res)
+{
+	params.pagetitle = title;
+	if(!params.partials)
+		params.partials = {};
+	params.partials.page = viewfile;
+	cons.mustache('views/layout.html', params, function(err, html) {
+		if(err) throw err;
+		res.send(html);
+	});
+}
+
+function check_credentials(user, pass)
+{
+	return user == "jaman4dbz" && pass == "password";
+}
+
+function verify_loggedin(req, res)
+{
+	if(!req.session.loggedin)
+		return res.send("You must be logged in to view admin items...");
+}
+
+function unique_sort(arr)
+{
+	arr.sort();
+	for(var i=0; i!=arr.length - 1; ++i)
+		if(arr[i] == arr[i+1])
+			arr.splice(--i+2, 1); //i decrement, but otherwise remove the ite,... meh...
+
+	return arr;
+}

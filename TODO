@@ -1,9 +1,12 @@
 TODO:
 
-- create routes
-	-add the front end summary view, and full view for an article
-	-add the list article view
 - use bootstrap to make the website look good
 	-basic as in the book, but nice fonts, and borders and stuff. Maybe a nice rotating header image.
+	-limit the character amount in the mongoDB query for lists
+	-create an ajax call to get the full data for an article.
 
+-put login credentials somewhere else, so I can push to github, without revealing credentials...
 - make a blog post and post on G+ about how long it took.
+
+future:
+- consider using underscore for a lot of basic js functionality that i've reproduced.

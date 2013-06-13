@@ -1,0 +1,24 @@
+<fieldset>
+ <legend><h1>{{title}} - {{created}}({{modified}})</h1></legend>
+ <h2>{{tags}}</h2>
+ <pre>{{body}}</pre>
+</fieldset>
+<fieldset>
+ <legend><h2>Comments</h2></legend>
+ {{#comments}}
+  <fieldset>
+	<legend><h2>{{author}}</h2></legend>
+	<pre>{{body}}</pre>
+  </fieldset>
+ {{/comments}}
+ <fieldset>
+  <legend>Add a Comment</legend>
+  <form action="/data/comment" method="post">
+	<input type="hidden" name="_id" value="{{_id}}" />
+	<input type="hidden" name="redirect" value="/article/{{title}}" />
+	<label for="author">Author</label><input type="text" name="author" /><br />
+	<textarea name="body"></textarea><br />
+	<input type="submit" value="Add Comment" />
+  </form>
+ </fieldset>
+</fieldset>
