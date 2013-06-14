@@ -1,12 +1,19 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
  <head>
   <title>{{pagetitle}}</title>
-  <script type="text/javascript" src="/js/jquery.min.js"></script>
-  <script type="text/javascript" src="/js/main.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="/css/main.css" rel="stylesheet" media="screen">
  </head>
  <body>
-  <header>Jayeh's Microblog</header>
-  {{>page}}
+  <header class="page-header" style="margin-left: 30px;"><h1>Jayeh's Microblog <small>{{pagetitle}}</small></h1></header>
+  <div class="container">
+   {{>page}}
+  </div>
   <footer>Created through NodeJS and MongoDB</footer>
+  <script src="/js/jquery.min.js"></script>
+  <script src="/bootstrap/js/bootstrap.min.js"></script>
+  <script src="/js/main.js"></script>
  </body>
 </html>

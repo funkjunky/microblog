@@ -10,9 +10,16 @@ app.use(express.logger());
 app.use("/js", express.static(__dirname + '/js'));
 app.use("/css", express.static(__dirname + '/css'));
 app.use("/views", express.static(__dirname + '/views'));
+//this is bad... I need to set this up properly...
+app.use("/bootstrap", express.static(__dirname + '/bootstrap'));
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 app.use(express.session({secret: '234523543g4gefderg'}));
+app.use(app.router);
+app.use(function(err, req, res, next) {
+	console.error(err.stack);
+	res.send(500, 'something broke!');
+});
 
 //Laziness
 //TODO: put this somewhere else...
@@ -36,20 +43,25 @@ app.get('/', function(req, res) {
  */
 app.get('/article/:title', function(req, res) {
 	dbh.collection('articles').findOne({title: req.params.title}, {}, function(err, article) {
+		if(!article)
+			return res.send(500, "ARTICLE DOESNT EXIST");
 		send_templated_response('full_article', article.title, article, res);
 	});
 });
 
 app.get('/all', function(req, res) {
-	send_filtered_response({}, req, res);
+	send_filtered_response({}, "All Articles", req, res);
 });
 
 app.get('/tag/:tag', function(req, res) {
 	console.log("tag: " + req.params.tag);
-	send_filtered_response({tags: req.params.tag}, req, res);
+	var filter = {tags: req.params.tag};
+	var pagetitle = "Articles with the tag '" + req.params.tag + "'";
+	send_filtered_response(filter, pagetitle, req, res);
 });
 
 app.get('/date/:year/:month', function(req, res) {
+	var filter;
 	if(!req.params.month)
 		filter = {created: {
 			$gt: new Date("01/01/"+req.params.year),
@@ -61,19 +73,22 @@ app.get('/date/:year/:month', function(req, res) {
 			$lt: new Date("01/"+(req.params.month+1)+"/"+req.params.year)
 		}};
 
-	send_filtered_response(filter, req, res);
+	var pagetitle = "Articles from " + req.params.year;
+	if(req.params.month)
+		title = req.params.month + "/" + title;
+
+	send_filtered_response(filter, pagetitle, req, res);
 });
 
 app.get('/search/:term', function(req, res) {
-	filter = { $or: [
+	var filter = { $or: [
 		{ title: new RegExp(".*"+req.params.term+".*", "i") },
 		{ body: new RegExp(".*"+req.params.term+".*", "i") },
 		{ tags: new RegExp(".*"+req.params.term+".*", "i") },
 	]};
+	var pagetitle = "Articles that contain '" + req.params.term + "'";
 
-	console.log("starting search");
-	send_filtered_response(filter, req, res);
-	console.log("done search");
+	send_filtered_response(filter, pagetitle, req, res);
 });
 /***
  ***/
@@ -104,14 +119,15 @@ app.get('/admin/edit/:title', function(req, res) {
  */
 app.post('/data/replace', function(req, res) {
 	var collection = dbh.collection("articles");
-	req.body.modified = new Date();
 	req.body.tags = req.body.tags.split(",");
 	var _id = new ObjectID();
-	if(req.body._id && req.body._id != '')
+	if(req.body._id && req.body._id != '') {
 		_id = new ObjectID(req.body._id);
-	else //if it's new, add the created field.
+		req.body.modified = new Date();
+	} else
 		req.body.created = new Date();
-	delete req.body._id;
+
+	delete req.body._id; //we don't want to add or edit the _id field... let mongo do that.
 
 	collection.update({_id: _id}, {$set: req.body}, {w: 0, upsert: true});
 
@@ -162,12 +178,13 @@ app.post('/security/login', function(req, res) {
 /***
  ***/
 
-var port = 3000;
-app.listen(port);
-console.log("Listening on port " + port);
+var port = process.env.PORT || 3000;
+app.listen(port, function() {
+	console.log("Listening on port " + port);
+});
 
 //Convinience function... I don't know if this is the way it should be done.
-function send_filtered_response(filter, req, res)
+function send_filtered_response(filter, pagetitle, req, res)
 {
 	dbh.collection('articles').find(filter).toArray(function(err, articles) {
 		console.log(articles);
@@ -178,8 +195,7 @@ function send_filtered_response(filter, req, res)
 		//
 		var params = {articles: articles, tags: unique_sort(tags), partials: { summed_article: 'summed_article' }};
 		if(req.session.loggedin) params.loggedin = true;
-		console.log(params);
-		send_templated_response('filtered_articles', 'filter = '+JSON.stringify(filter), params, res);
+		send_templated_response('filtered_articles', pagetitle, params, res);
 	});
 }
 
@@ -210,7 +226,7 @@ function verify_loggedin(req, res)
 function unique_sort(arr)
 {
 	arr.sort();
-	for(var i=0; i!=arr.length - 1; ++i)
+	for(var i=0; i<=arr.length - 1; ++i)
 		if(arr[i] == arr[i+1])
 			arr.splice(--i+2, 1); //i decrement, but otherwise remove the ite,... meh...
 

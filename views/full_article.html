@@ -1,18 +1,29 @@
-<fieldset>
- <legend><h1>{{title}} - {{created}}({{modified}})</h1></legend>
- <h2>{{tags}}</h2>
- <pre>{{body}}</pre>
+<div class="row bordered">
+<fieldset class="fieldset">
+ <legend>
+  <h3>{{title}}</h3>
+  <small>{{created}}</small>
+ </legend>
+ {{#modified}}<small>(Last-Modified: {{modified}}</small>{{/modified}}
+ <ul class="inline">
+  {{#tags}}
+  <li><a href="/tag/{{.}}">#{{.}}</a></li>
+  {{/tags}}
+ </ul>
+ <p>{{body}}</p>
 </fieldset>
-<fieldset>
- <legend><h2>Comments</h2></legend>
+</div>
+<div class="row bordered">
+<fieldset class="fieldset">
+ <legend><h4>Comments</h4></legend>
  {{#comments}}
   <fieldset>
-	<legend><h2>{{author}}</h2></legend>
-	<pre>{{body}}</pre>
+	<legend><h5>{{author}}</h5></legend>
+	<p>{{body}}</p>
   </fieldset>
  {{/comments}}
  <fieldset>
-  <legend>Add a Comment</legend>
+  <legend><h4>Add a Comment</h4></legend>
   <form action="/data/comment" method="post">
 	<input type="hidden" name="_id" value="{{_id}}" />
 	<input type="hidden" name="redirect" value="/article/{{title}}" />
@@ -22,3 +33,4 @@
   </form>
  </fieldset>
 </fieldset>
+</div>

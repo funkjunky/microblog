@@ -1,9 +1,18 @@
-  <h1>Articles - {{filter}}</h1>
-  <form id="search"><input type="text"/><input type="submit" value="Search." /></form><br />
-  {{#tags}}
-   <a href="/tag/{{.}}">{{.}}</a> 
-  {{/tags}}
+	<div class="row">
+    <div class="navbar navbar-inner">
+     <form id="search" class="navbar-form pull-left">
+      <input type="text" class="search-query"/>
+   	<button type="submit" class="btn">
+   	 <i class='icon-search'></i>Search
+      </button>
+     </form>
+	  <ul class="inline pull-right">
+     {{#tags}}
+		<li><a href="/tag/{{.}}" class="btn btn-mini">#{{.}}</a></li> 
+     {{/tags}}
+	  </ul>
+	 </div>
+   </div>
   {{#articles}}
    {{>summed_article}}
   {{/articles}}
- </body>

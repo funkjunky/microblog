@@ -1,10 +1,16 @@
-<fieldset>
-	<legend><h1><a href='/article/{{title}}'>{{title}}</a> - {{created}}({{modified}})</h1></legend>
- <h2>
+<div class="row bordered">
+<fieldset class="fieldset">
+ <legend>
+  <h3><a href='/article/{{title}}'>{{title}}</a></h3>
+  <small>{{created}}</small>
+ </legend> 
+ {{#modified}}<small>(Last-Modified: {{modified}})</small>{{/modified}}
+ <ul class="inline">
  {{#tags}}
- <a href="/tag/{{.}}">{{.}}</a> 
+  <li><a href="/tag/{{.}}" class="btn btn-mini">#{{.}}</a> </li>
  {{/tags}}
- </h2>
- <pre>{{body}}</pre>
- {{#loggedin}}<a href="/admin/edit/{{title}}">Edit</a>{{/loggedin}}
+ </ul>
+ <p>{{body}}</p>
+ {{#loggedin}}<a href="/admin/edit/{{title}}"><i class="icon-edit"></i>Edit</a>{{/loggedin}}
 </fieldset>
+</div>

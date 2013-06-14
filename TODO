@@ -1,11 +1,9 @@
 TODO:
 
-- use bootstrap to make the website look good
-	-basic as in the book, but nice fonts, and borders and stuff. Maybe a nice rotating header image.
-	-limit the character amount in the mongoDB query for lists
-		-create a view that limits the characters???
+- deploy on a webserver... try free heroku first
+	-if horku fails try amazon
+	-if amazon fails, then try a VPS, like the one gilles uses.
 
--put login credentials somewhere else, so I can push to github, without revealing credentials...
 - make a blog post and post on G+ about how long it took.
 
 future:
