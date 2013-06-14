@@ -24,7 +24,11 @@ app.use(function(err, req, res, next) {
 //Laziness
 //TODO: put this somewhere else...
 var dbh;
-mongo.connect("mongodb://localhost:27017/microblog", function(err, db) {
+//"mongodb://localhost:27017/microblog"
+var mongo_url = process.env.MONGOLAB_URI || 
+  process.env.MONGOHQ_URL || 
+    'mongodb://localhost:27017/microblog';
+mongo.connect(mongo_url, function(err, db) {
 	if(!err) {
 		console.log("Connected to Mongo");
 		dbh = db; //this is probably terrible
