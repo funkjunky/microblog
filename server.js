@@ -190,7 +190,7 @@ app.listen(port, function() {
 //Convinience function... I don't know if this is the way it should be done.
 function send_filtered_response(filter, pagetitle, req, res)
 {
-	dbh.collection('articles').find(filter).toArray(function(err, articles) {
+	dbh.collection('articles').find(filter).sort({created: -1}).toArray(function(err, articles) {
 		console.log(articles);
 		//get all the tags
 		var tags = [];
