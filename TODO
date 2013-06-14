@@ -1,10 +1,4 @@
 TODO:
 
-- deploy on a webserver... try free heroku first
-	-if horku fails try amazon
-	-if amazon fails, then try a VPS, like the one gilles uses.
-
-- make a blog post and post on G+ about how long it took.
-
 future:
 - consider using underscore for a lot of basic js functionality that i've reproduced.
