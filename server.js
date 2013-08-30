@@ -226,7 +226,7 @@ function check_credentials(user, pass)
 
 function verify_loggedin(req, res)
 {
-	if(!req.session.loggedin && false) //TODO: remove remove!
+	if(!req.session.loggedin)
 		return res.send("You must be logged in to view admin items...");
 }
 
