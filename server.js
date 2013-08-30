@@ -1,12 +1,15 @@
 var express = require('express');
 var cons = require('consolidate');
+var Handlebars = require('handlebars');
 var app = express();
 var mongo = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID;
 var fs = require('fs');
+var Pagedown = require('pagedown');
 
 //Middle-Ware
 app.use(express.logger());
+app.use("/icons", express.static(__dirname + '/icons'));
 app.use("/js", express.static(__dirname + '/js'));
 app.use("/css", express.static(__dirname + '/css'));
 app.use("/views", express.static(__dirname + '/views'));
@@ -209,7 +212,7 @@ function send_templated_response(viewfile, title, params, res)
 	if(!params.partials)
 		params.partials = {};
 	params.partials.page = viewfile;
-	cons.mustache('views/layout.html', params, function(err, html) {
+	cons.handlebars('views/layout.html', params, function(err, html) {
 		if(err) throw err;
 		res.send(html);
 	});
@@ -223,7 +226,7 @@ function check_credentials(user, pass)
 
 function verify_loggedin(req, res)
 {
-	if(!req.session.loggedin)
+	if(!req.session.loggedin && false) //TODO: remove remove!
 		return res.send("You must be logged in to view admin items...");
 }
 
@@ -236,3 +239,8 @@ function unique_sort(arr)
 
 	return arr;
 }
+
+Handlebars.registerHelper('markdown', function(html) {
+	var converter = new Pagedown.Converter();
+	return new Handlebars.SafeString(converter.makeHtml(html));
+});

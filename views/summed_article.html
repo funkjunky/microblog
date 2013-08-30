@@ -10,7 +10,7 @@
   <li><a href="/tag/{{.}}" class="btn btn-mini">#{{.}}</a> </li>
  {{/tags}}
  </ul>
- <p style="white-space: pre">{{body}}</p>
+ <p style="white-space: pre">{{markdown body}}</p>
  {{#loggedin}}<a href="/admin/edit/{{title}}"><i class="icon-edit"></i>Edit</a>{{/loggedin}}
 </fieldset>
 </div>

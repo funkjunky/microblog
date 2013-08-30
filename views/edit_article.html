@@ -10,7 +10,11 @@
 	 <label for="title">Title</label>
 	 <input type="text" name="title" value="{{title}}" /><br />
 	 <label for="body">Body</label><br />
-	 <textarea name="body" class="input-block-level">{{body}}</textarea><br />
+	 <div class="wmd-panel">
+	  <div id="wmd-button-bar"></div>
+	  <textarea name="body" id="wmd-input" class="wmd-input input-block-level">{{body}}</textarea>
+	 </div>
+	 <div id="wmd-preview" class="wmd-panel wmd-preview"></div>
 	 <label for="tags">Tags</label>
 	 <input type="text" name="tags" value="{{tags}}" /><br />
 	 <input type="submit" value="{{operation}}" />
